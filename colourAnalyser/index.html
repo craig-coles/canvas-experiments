@@ -1,0 +1,30 @@
+<!DOCTYPE HTML> 
+<html lang="en"> 
+	<head> 
+		<title>cOlOurS</title> 
+		<meta charset="utf-8"> 
+		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/> 
+		<link href='http://fonts.googleapis.com/css?family=Berkshire+Swash' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="css/styles.css" />
+	</head> 
+	<body>
+	
+	<div class="trap"></div>
+	
+	<div id="drop-box" class="">Drag file here.</div>
+	<div id="controls">
+		<a href="#" id="reset">reset</a>
+	</div>
+	<div id="colours"></div>
+	<script type="text/javascript" src="js/animateSquares.js"></script>
+	<script type="text/javascript" src="js/ColourAnalyser.js"></script>
+	<script type="text/javascript">
+		ColourAnalyser({
+			el:"drop-box",
+			resetEl:"reset",
+			scaleWidth:592,
+			colorEl:'colours'
+		});
+	</script>
+	</body>
+</html>

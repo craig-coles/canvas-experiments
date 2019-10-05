@@ -1,0 +1,356 @@
+<!DOCTYPE HTML> 
+<html lang="en"> 
+	<head> 
+		<title></title> 
+		<meta charset="utf-8"> 
+		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/> 
+		 <style type="text/css">
+		 	/* http://meyerweb.com/eric/tools/css/reset/ 
+		 	   v2.0 | 20110126
+		 	   License: none (public domain)
+		 	*/
+		 	
+		 	html, body, div, span, applet, object, iframe,
+		 	h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+		 	a, abbr, acronym, address, big, cite, code,
+		 	del, dfn, em, img, ins, kbd, q, s, samp,
+		 	small, strike, strong, sub, sup, tt, var,
+		 	b, u, i, center,
+		 	dl, dt, dd, ol, ul, li,
+		 	fieldset, form, label, legend,
+		 	table, caption, tbody, tfoot, thead, tr, th, td,
+		 	article, aside, canvas, details, embed, 
+		 	figure, figcaption, footer, header, hgroup, 
+		 	menu, nav, output, ruby, section, summary,
+		 	time, mark, audio, video {
+		 		margin: 0;
+		 		padding: 0;
+		 		border: 0;
+		 		font-size: 100%;
+		 		font: inherit;
+		 		vertical-align: baseline;
+		 	}
+		 	
+		 	canvas {
+		 		background:rgb(0,0,0);
+		 	}
+		 	
+		 </style>
+	</head> 
+	<body>
+	<canvas id="the-canvas"></canvas>
+	<script type="text/javascript">
+		
+		window.requestAnimFrame = (function(){
+			return  window.requestAnimationFrame       || 
+				window.webkitRequestAnimationFrame || 
+				window.mozRequestAnimationFrame    || 
+				window.oRequestAnimationFrame      || 
+				window.msRequestAnimationFrame     || 
+				function( callback ){
+					window.setTimeout(callback, 1000 / 60);
+				};
+			})();
+
+		function Particle(x,y,w,h,a){
+			this.x = x;
+			this.y = y;
+			this.w = w;
+			this.h = h;
+			this.angle = 0;
+			if(a){
+				this.a = a;
+			}
+		}
+		
+		Particle.prototype = {
+			
+			update: function(x,y,a){
+				this.x = x;
+				this.y = y;
+				this.a = a;
+			}
+			
+			
+		}
+		
+		function Enemy(x,y,w,h){
+		
+			this.x = x;
+			this.y = y;
+			this.w = w;
+			this.h = h;
+			this.particles = [];
+			this.hit = false;
+			this.alpha = 1;
+		
+		}
+		
+		Enemy.prototype = {
+		
+			explode: function(amt){
+				//manufacture particles
+				for(var i = 0; i < amt; i++){
+					var myX = this.x + (this.w / 2);
+					var myY = this.y + (this.h / 2);
+					var alpha = Math.random();
+					this.particles.push(new Particle(myX,myY,2,2,alpha));
+					this.particles[i].angle = Math.random() * 100;
+					this.particles[i].expandFactor = Math.floor(Math.random() * 80);
+					if(this.particles[i].expandFactor  == 0){
+						this.particles[i].expandFactor = 1;	
+					}
+					
+				}
+			},
+			
+			update: function(x,y,a){
+				this.x = x;
+				this.y = y;
+				
+			}
+			
+			
+		
+		
+		}
+		
+		function Vector2d(){
+		
+		}
+		
+		Vector2d.prototype = {
+		
+			getRadians : function(deg){
+				return deg * Math.PI / 180;
+			
+			},
+			
+			getDegrees : function(rad){
+				return rad * 180 / Math.PI;
+			},
+			
+			getCoords : function(deg){
+				return {
+					x : Math.cos(deg),
+					y : Math.sin(deg)
+				}
+			}
+			
+			
+		
+		}
+		
+		var Game = function(){
+			var _this = this;
+			this.init = function(){
+				this.frame = 0;
+				var _this = this;
+				this.canvas = document.getElementById('the-canvas');
+				this.ctx = this.canvas.getContext('2d');
+				this.canvas.width = 900;
+				this.canvas.height = 500;
+				this.ctx.fillStyle = 'rgb(0,0,0)';
+				this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+				
+				this.spaceShip = new Particle(0,400,35,15);
+				
+				this.collisionsObject = {};
+				
+				this.projectiles = [];
+				this.enemys = [];
+				for(var i = 0; i < 10; i++){
+					this.enemys.push(new Enemy(103 * i,150,50,50));
+				}
+				
+				
+				this.vector = new Vector2d();
+				
+				
+							
+				window.addEventListener('keydown',this.keyEvent,false);
+				window.addEventListener('keyup',this.keyEvent,false);
+				
+				this.loop();
+			}
+			
+			this.keyEvent = function(e){
+				if(e.type == 'keydown'){
+					if(e.keyCode == 32){
+						_this.shoot = true;
+					}
+					if(e.keyCode == 39){
+						
+						_this.right = true;
+						_this.left = false;
+					}
+					
+					if(e.keyCode == '37'){
+						_this.left = true;
+						_this.right = false;
+					}
+				}
+				
+				if(e.type == 'keyup') {
+					if(e.keyCode == 32){
+						_this.shoot = false;
+					}
+					_this.right = false;
+					_this.left = false;
+				
+				}
+			}
+			
+			this.checkCollisions = function(obj){
+			
+				
+				for(var i =0; i < obj.projectiles.length;i++){
+					var projectile = obj.projectiles[i];
+					for(var j = 0; j < obj.enemys.length;j++){
+						var enemy = obj.enemys[j];
+						if(projectile.x >= enemy.x && projectile.x <= (enemy.x + enemy.w) && projectile.y <= enemy.y){
+							var enemyHit = j;
+						} 
+					}
+				}
+				
+				if(enemyHit){
+					return enemyHit;
+				} else {
+					return false;
+				}
+			
+			}
+			
+			this.update = function(){
+				
+				if(this.right){
+					this.spaceShip.update(this.spaceShip.x + 6,this.spaceShip.y);
+				}
+				
+				if(this.left){
+					this.spaceShip.update(this.spaceShip.x - 6,this.spaceShip.y);
+				}
+				
+				if(this.shoot){
+					if(this.projectiles.length < 20){
+						if(this.frame % 12 == 0){
+							var projectile = new Particle((this.spaceShip.x + (this.spaceShip.w / 2) - 2.5),this.spaceShip.y,5,5);
+							this.projectiles.push(projectile);
+						}
+					}
+				}
+				
+				
+				for(var i = 0; i < this.projectiles.length;i++){
+					this.projectiles[i].y = this.projectiles[i].y - 8;
+					if(this.projectiles[i].y < -20){
+						this.projectiles.shift();
+					}
+				}
+				
+				
+				for(var i = 0; i < this.enemys.length;i++){
+				
+					this.enemys[i].update(this.enemys[i].x, this.enemys[i].y + 0);
+				
+				}
+				
+			
+				this.collisionsObject['projectiles'] = this.projectiles;
+				this.collisionsObject['enemys'] = this.enemys;
+				this.collisionsObject['spaceShip'] = this.spaceShip;
+				
+				var enemyHit = this.checkCollisions(this.collisionsObject);
+				
+				if(enemyHit){
+					if(!this.enemys[enemyHit].hit){
+						this.enemys[enemyHit].hit = true;
+						this.enemys[enemyHit].explode(100);
+					}
+					//this.enemys.splice(enemyHit,1);
+				}
+				
+				
+				for(var j = 0; j < this.enemys.length;j++){
+					if(this.enemys[j].hit){
+						
+						
+						for(var i = 0; i < this.enemys[j].particles.length;i++){
+							var part = this.enemys[j].particles[i];
+							
+							var obj = this.vector.getCoords(part.angle);
+							
+							part.update((part.x + (obj.x * part.expandFactor)),(part.y + (obj.y * part.expandFactor)),part.a * 0.99);
+							
+						}
+						
+					
+					}
+				}
+				
+				
+			}
+			
+			this.render = function(){
+				
+				this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+				
+				this.ctx.fillStyle = 'rgba(255,255,255,1)';
+				
+				this.ctx.fillRect(this.spaceShip.x,this.spaceShip.y,this.spaceShip.w,this.spaceShip.h);
+				
+				for(var i = 0; i < this.projectiles.length;i++){
+						this.ctx.fillRect(this.projectiles[i].x,this.projectiles[i].y,this.projectiles[i].w,this.projectiles[i].h);
+				}
+				
+				
+				
+				for(var i = 0; i < this.enemys.length;i++){
+					this.ctx.fillStyle = 'rgba(255,255,255,1)';
+					var e = this.enemys[i];
+					if(!e.hit){
+						this.ctx.fillRect(e.x,e.y,e.w,e.h);
+					}
+					for(var j = 0; j < e.particles.length;j++){
+						var p = e.particles[j];
+						
+						this.ctx.fillStyle = 'rgba(255,255,255,'+p.a+')';
+						this.ctx.fillRect(p.x,p.y,p.w,p.h);
+						
+						
+					}
+					
+					
+					
+					
+				}
+				
+				
+				
+				
+				
+			}
+			
+			this.loop = function(){
+				this.frame++;
+				this.update();
+				this.render();
+				
+				requestAnimFrame(function(){
+					_this.loop();
+				});
+			}
+			
+			this.init();
+		
+		}
+		
+		
+		var game = new Game();
+		
+		
+	
+	</script>
+	</body>
+</html>

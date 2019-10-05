@@ -1,0 +1,193 @@
+<!DOCTYPE HTML> 
+<html lang="en"> 
+	<head> 
+		<title></title> 
+		<meta charset="utf-8"> 
+		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/> 
+		
+	</head> 
+	<body>
+	
+	<canvas id="canvas"></canvas>
+	<script type="text/javascript">
+		
+		function particle(){
+			var px,py,pw,ph;
+			
+			function set(x,y,w,h){
+				px = x;
+				py = y;
+				pw = w;
+				ph = h;
+			}
+			
+			function get(){
+				
+				return {
+				
+					x:px,
+					y:py,
+					w:pw,
+					h:ph
+				
+				}
+			}
+			
+			return {
+				
+				set:set,
+				get:get
+			
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		function GameEngine(){
+			
+			var w,h,constant,i,x,direction,canvas,element,ctx,multiplier,p,particles,r,g,b;
+		
+			function init(){
+				
+				r=255;
+				g=0;
+				b=0;
+								
+				w = 1000;
+				h = 500;
+				
+				constant = 0.1;
+				i = 0;
+				x = 0;
+				direction = true;
+				canvas = document.getElementById('canvas');
+				element = document.getElementById('square');
+				canvas.height = 500;
+				canvas.width = 1000;
+				ctx = canvas.getContext("2d");
+				
+				multiplier = 100;
+				
+				p = particle();
+				particles = new Array();
+				
+				for(var n = 0; n < 50; n++){
+					particles.push(particle());
+				
+				}
+				fillRect('#000', 0,0,canvas.width,canvas.height);
+				gameLoop();
+			
+			}
+			
+			function fillRect(hex, x, y,w,h){
+				ctx.fillStyle = hex;
+				ctx.fillRect(x,y,w,h);
+			}
+			
+			function updateColors(){
+			
+				if(r > 0 && g <= 0 && b < 255) {
+					r = r-1;
+					b = b+1;
+				}
+				
+				if(r <=1 && g < 253 && b >=253){
+					g = g+1;	
+				}
+				
+				if(r <=1 && g >= 253 && b > 0) {
+					b = b -1;	
+				}
+				
+				if(r > 0 && g >= 253 && b <=1){
+					r = r + 1;
+					
+				}
+				
+				if(r >= 253 && g > 0 && b <=1){
+					g = g - 1;
+				}
+			
+				//console.log("the colors: "+r+" "+g+" "+b);
+			
+			}
+		
+		
+			function update(){
+			
+				if(x < 1){
+					direction = true;
+					multiplier = Math.floor(multiplier + (Math.random()* 50));		
+				}
+				
+				if(x > 800){
+					direction = false;
+					multiplier = Math.floor(multiplier - (Math.random()* 30));
+				}
+				
+				if(direction){
+					x = x + 0.5;
+					
+					
+				} else {
+					x = x - 0.5;
+					
+				}
+				
+				sineWave = Math.sin(0.1*(constant * i));
+				num = (sineWave) * multiplier;
+				var y = Math.floor(num);
+				updateColors();
+				
+				
+				for(var n = 0; n < particles.length;n++){
+					particles[n].set(x+(n*3.0002),y+190+n,2,2);
+				}
+				//p.set(x,y,2,2);
+				
+				
+				
+			}
+		
+			function render(){
+				
+				
+				//fillRect('#000', 0,0,canvas.width,canvas.height);
+				
+				for(var n = 0; n < particles.length;n++){
+					fillRect('rgb('+r+','+g+','+b+')',particles[n].get().x,particles[n].get().y,1,1);
+				}
+				
+			}
+			
+			
+			function gameLoop(){
+				
+				setInterval(function(){
+				
+					update();
+					render();
+					i++;
+	
+				},1);
+			
+			}
+			
+			return {
+				init:init
+			
+			}
+			
+
+		}
+		
+		var game = GameEngine();
+		game.init();
+		</script>
+	</body>
+</html>

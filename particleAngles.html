@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	
+	<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+	Remove this if you use the .htaccess -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title></title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+	
+	<!-- Mobile viewport optimized: j.mp/bplateviewport -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style type="text/css">
+		body {
+			margin:0;
+			padding:0;
+		}
+	</style>
+ 
+
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script type="text/javascript" src="Vector2D.js"></script>
+<script type="text/javascript">
+	function Particle(){
+		var x,y,vx,vy,w,h,a,life;
+		function set(sx,sy,sw,sh,sa,slife){
+			x = sx;
+			y = sy;
+			w = sw;
+			h = sh;
+			a = sa;
+			
+			life = slife;
+		}
+		
+		function setVelocity(sx,sy){
+			vx = sx;
+			vy = sy;
+		}
+		
+		function get(){
+			return {
+				x:x,
+				y:y,
+				vx:vx,
+				vy:vy,
+				w:w,
+				h:h,
+				a:a,
+				life:life
+			
+			}
+		}
+		
+		return {
+			
+			set:set,
+			setVelocity:setVelocity,
+			get:get
+		
+		}
+	
+	}
+	
+	function Engine(){
+	
+		var canvas,ctx,ship,particles,vector;
+		function init(){
+			canvas = document.getElementById('canvas');
+			ctx = canvas.getContext('2d');
+			particles = new Array();
+			ship = new Array();
+			
+			createShip(10);	
+			setCanvasDimensions();
+			clearCanvas();
+			loop();
+		}
+		
+		function createShip(num){
+			for(var i = 0; i < num; i++){
+				var p = Particle();
+				p.set(randomRange(0,1000),randomRange(0,500),5,5,1,0);
+				ship.push(p);
+			}
+		}
+		
+		function setCanvasDimensions(){
+			canvas.height = window.innerHeight;
+			canvas.width = window.innerWidth;
+		}
+		
+		function clearCanvas(){
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.fillRect(0,0,canvas.width,canvas.height);
+		}
+		
+		function randomRange(min,max){
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+		
+		function addParticle(){
+			for(var i = 0; i < 2;i++){
+				var p = Particle();
+				for(var x = 0; x < ship.length;x++){
+					p.set(ship[x].get().x,ship[0].get().y,1,1,1,1);
+				}
+				p.setVelocity(Math.random(),Math.random());
+				particles.push(p);
+			}
+		
+		}
+		
+		
+		function update(){
+			if(particles.length < 500){
+				addParticle();
+			}
+			
+			for(var i = 0; i < ship.length;i++){
+				var s = ship[i];
+				s.set(s.get().x + 2,s.get().y + 2,5,5,1,100);
+			}
+			
+			for(var i = 0; i < particles.length;i++){
+				var part = particles[i];
+				var partValues = part.get();
+				var v = new Vector2D(partValues.x,partValues.y);
+				var partVals = new Vector2D(partValues.vx,partValues.vy);
+				var force = partVals.mult(new Vector2D(0.5,0.5));
+				var vex = v.plus(new Vector2D(force.x,force.y));
+				
+				part.set(vex.x,vex.y,1,1,partValues.a*0.99,1);
+				
+			}
+			
+			particles.shift();	
+		}
+		
+		function render(){
+			clearCanvas();
+			ctx.fillStyle = 'rgba(255,255,255)';
+			for(var i = 0; i < ship.length;i++){
+				var s = ship[i];
+				console.log(s.get().w,s.get().h);
+				ctx.fillRect(s.get().x,s.get().y,s.get().w,s.get().h,s.get().a,s.get().life);
+			}
+			
+			for(var i = 0; i < particles.length;i++){
+				var part = particles[i];
+				ctx.fillStyle = 'rgba(255,255,255,'+part.get().a+')';
+				ctx.fillRect(part.get().x,part.get().y,part.get().w,part.get().h,part.get().a,part.get().life);
+			}	
+		}
+		
+		function loop(){
+			update();
+			render();
+			
+				setTimeout(loop,1000/30);
+			
+				
+			
+		}
+	
+	
+		return {
+		
+			init:init
+		
+		}
+	
+	}
+	
+	var e = Engine();
+	e.init();
+
+	
+
+
+
+</script>
+</body>
+</html>

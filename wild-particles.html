@@ -1,0 +1,234 @@
+<!DOCTYPE HTML> 
+<html lang="en"> 
+	<head> 
+		<title></title> 
+		<meta charset="utf-8"> 
+		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/> 
+		
+	</head> 
+	<body>
+	
+	<canvas id="canvas"></canvas>
+	<script type="text/javascript">
+		
+		function particle(){
+			var px,py,pw,ph,pa,life;
+			
+			function set(x,y,w,h,a,life){
+				px = x;
+				py = y;
+				pw = w;
+				ph = h;
+				pa = a;
+				life = life;
+			}
+			
+			function get(){
+				
+				return {
+				
+					x:px,
+					y:py,
+					w:pw,
+					h:ph,
+					a:pa,
+					life:life
+				
+				}
+			}
+			
+			return {
+				
+				set:set,
+				get:get
+			
+			}
+		}
+		
+
+		function GameEngine(){
+			
+			var w,h,constant,i,x,direction,canvas,element,ctx,multiplier,p,particles,r,g,b,POP,cr,cg,cb;
+		
+			function init(){
+				POP = false;
+				r=255;
+				g=0;
+				b=0;
+				
+				cr = true;
+				cg = false;
+				cb = false;
+				
+				w = 1000;
+				h = 500;
+				
+				constant = 0.1;
+				i = 0;
+				x = 0;
+				direction = true;
+				canvas = document.getElementById('canvas');
+				element = document.getElementById('square');
+				canvas.height = 500;
+				canvas.width = 1000;
+				ctx = canvas.getContext("2d");
+				
+				multiplier = 100;
+				
+				particles = new Array();
+				//particleFactory();
+				
+				fillRect('#000', 0,0,canvas.width,canvas.height);
+				gameLoop();
+			
+			}
+			
+			function particleFactory(){
+				var a = randomRange(0,100);
+				var coordsx = randomRange(0,500);
+				var coordsy = randomRange(0,500);
+				a = (a * 0.01);
+				particles = new Array();
+				for(var i = 0; i < 100;i++){
+					p = particle();
+					p.set(randomRange(0,1000),randomRange(0,1000),1,1,a,randomRange(0,100));
+					particles.push(p);
+				}
+			
+			
+			}
+			
+			function randomRange(min, max){
+				return Math.floor((Math.random()*(max-min)) + min); 
+			}
+			
+			function fillRect(hex, x, y,w,h){
+				ctx.fillStyle = hex;
+				ctx.fillRect(x,y,w,h);
+			}
+			
+			function updateColors(){
+			
+			
+				if(cr && !cg && !cb){
+					r = r;
+					g = g;
+					b = b + 6;
+					
+					if(b >= 255){
+						cb = true;
+						cr = false;
+					}
+					
+				}
+				
+				if(cb && !cg && !cr){
+					r = r - 6;
+					g = g;
+					b = b;
+					
+					if(r <= 0){
+											
+						cg = true;
+						cb = false;						
+					}
+					
+				}
+				
+				if(!cr && cg & !cb){
+					r =r;
+					g = g+6;
+					b=b;
+					
+					if(g >= 255){
+						cg = false;
+						cb = true;
+					}
+				
+				}
+
+			}
+			
+			
+			
+			
+			function update(){
+
+				updateColors();
+				
+				if(particles.length < 100){
+				var a = randomRange(0,100);
+				var coordsx = randomRange(0,500);
+				var coordsy = randomRange(0,500);
+				a = (a * 0.01);
+					p = particle();
+					p.set(randomRange(0,1000),randomRange(0,1000),1,1,a,randomRange(0,100));
+					particles.push(p);
+					
+					
+				}
+				
+				for(var i = 0; i < particles.length;i++){
+					p = particles[i];
+					//console.log(p);
+					p.set(p.get().x -0.5 ,p.get().y - 0.5 ,p.get().w,p.get().h, p.get().a + 0.1,p.get().life + 1);
+					//console.log(p.get());
+					if(p.get().life > 100){
+						particles.pop();
+					}
+				}
+				
+				console.log(particles.length);
+				
+				if(particles.length > 90) {
+					particles.pop();
+				}
+				
+				//
+				
+				
+				
+				
+				
+			}
+		
+			function render(){
+				
+				
+				fillRect('#000', 0,0,canvas.width,canvas.height);
+				
+				for(var n = 0; n < particles.length;n++){
+					fillRect('rgba('+r+','+g+','+b+','+particles[n].get().a+')',particles[n].get().x,particles[n].get().y,particles[n].get().w,particles[n].get().h);
+				}
+				
+				
+				
+				
+			}
+			
+			
+			function gameLoop(){
+				
+				setInterval(function(){
+					
+					update();
+					render();
+					i++;
+	
+				},Math.floor(1000/30));
+			
+			}
+			
+			return {
+				init:init
+			
+			}
+			
+
+		}
+		
+		var game = GameEngine();
+		game.init();
+		</script>
+	</body>
+</html>

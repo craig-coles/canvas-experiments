@@ -1,0 +1,198 @@
+<!DOCTYPE HTML> 
+<html lang="en"> 
+	<head> 
+		<title></title> 
+		<meta charset="utf-8"> 
+		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/> 
+		<style type="text/css">
+			body {
+				margin:0;
+				padding:0;
+			}
+		</style>
+	</head> 
+	<body>
+		<canvas id="canvas"></canvas>
+		<script type="text/javascript" src="Vector2D.js"></script>
+		<script type="text/javascript">
+			
+			function Particle(){
+				this.particles = new Array();
+			}
+			
+			Particle.prototype = {
+				
+				setCoords: function(x,y){
+					this.x = x;
+					this.y = y;
+				},
+				
+				setDimensions:function(w,h){
+					this.w = w;
+					this.h = h;
+				},
+				
+				setVelocity: function(vx,vy){
+					this.vx = vx;
+					this.vy = vy;
+				},
+				setAlpha: function(a){
+					this.a = a;	
+				},
+				setRGB: function(r,g,b){
+					this.r = r;
+					this.g = g;
+					this.b = b;
+				},
+				setRainbowRGB: function(r,g,b){
+					
+			
+					if(r > 0 && g <= 0 && b < 255) {
+						this.r = r-1;
+						this.b = b+1;
+					}
+					
+					if(r <=1 && g < 253 && b >=253){
+						this.g = g+1;	
+					}
+					
+					if(r <=1 && g >= 253 && b > 0) {
+						this.b = b -1;	
+					}
+					
+					if(r > 0 && g >= 253 && b <=1){
+						this.r = r + 1;
+						
+					}
+					
+					if(r >= 253 && g > 0 && b <=1){
+						this.g = g - 1;
+					}
+			
+				//console.log("the colors: "+r+" "+g+" "+b);
+			
+			
+				},
+				setLife: function(l){
+					this.life = l;
+				}, 
+				addParticle: function(part){
+					this.particles.push(part);	
+				}
+			
+			}
+			
+			function Engine(){
+				
+				
+			}
+			
+			Engine.prototype = {
+				init: function(){
+					this.canvas = document.getElementById('canvas');
+					this.ctx = canvas.getContext('2d');
+					this.particles = new Array();
+					this.ships = new Array();
+					this.createShips(1);	
+					this.setCanvasDimensions();
+					this.clearCanvas();
+				},
+				createShips:function(num){
+					for(var i = 0; i < num; i++){
+						var p = new Particle();
+						var d = this.randomRange(0,50);
+						p.setCoords(this.randomRange(0,1000),this.randomRange(0,500));
+						p.setDimensions(d,d);
+						p.setAlpha(1);
+						p.setLife(100);
+						this.ships.push(p);
+					}
+				},
+				setCanvasDimensions:function(){
+					this.canvas.height = window.innerHeight;
+					this.canvas.width = window.innerWidth;
+				},
+				clearCanvas:function(){
+					this.ctx.fillStyle = 'rgb(0,0,0)';
+					this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+				},
+				randomRange:function(min,max){
+					return Math.floor(Math.random() * (max - min + 1)) + min;
+				},
+				update: function(){
+					for(var i = 0; i < this.ships.length;i++){
+						var ship = this.ships[i];
+						ship.setCoords(ship.x + 2,ship.y + 2);
+						
+						if(ship.particles.length < 200){
+							
+							for(var n = 0;n < 2;n++){
+								ship.particles.push(new Particle());
+							}
+							
+							
+							for(var j = 0; j < ship.particles.length;j++){
+								var p = ship.particles[j];
+								p.setCoords(ship.x,ship.y);
+								p.setDimensions(1,1);
+								p.setLife(100);
+								p.setAlpha(1);
+								p.setRGB(255,0,0);
+							}
+						}
+						for(var j = 0; j < ship.particles.length;j++){
+							var part = ship.particles[j];
+							
+							var v = new Vector2D(part.x,part.y);
+							
+							var partVals = new Vector2D(v.x,v.y);
+							var force = partVals.mult(new Vector2D(0.5,0.5));
+							
+							var vex = v.plus(new Vector2D(force.x,force.y));
+							
+							part.setCoords(vex.x,vex.y);
+							part.setDimensions(1,1);
+							part.setAlpha(part.a*0.99);
+							part.setLife(100);
+							part.setRGB(this.randomRange(0,255),this.randomRange(0,0),this.randomRange(0,0));
+							
+						}
+						
+						ship.particles.shift();
+						
+					}		
+				},
+				
+				render:function(){
+					this.clearCanvas();
+					this.ctx.fillStyle = 'rgba(255,255,255,1)';
+					for(var i = 0; i < this.ships.length;i++){
+						var ship = this.ships[i];
+						this.ctx.fillRect(ship.x,ship.y,ship.w,ship.h);
+						for(var x= 0;x < ship.particles.length;x++){
+							var part = ship.particles[x];
+							
+							//this.ctx.fillStyle = 'rgba('+part.r+','+part.g+','+part.b+','+part.a+')';
+							this.ctx.fillRect(part.x,part.y,part.w,part.h);
+						}
+					}
+						
+				},
+				loop: function(){
+					this.update();
+					this.render();
+					var self = this;
+					setTimeout(function(){
+						self.loop();
+					},1000/30);
+				}
+			};
+			
+			var e = new Engine();
+			
+			e.init();
+			e.loop();
+
+		</script>
+	</body>
+</html>
